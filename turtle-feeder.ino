@@ -77,6 +77,7 @@ void handleFeeder() {
 
   json += "}";
 
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
   server.send(200, "application/json", json);
 }
 
