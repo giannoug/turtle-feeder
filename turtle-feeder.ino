@@ -11,6 +11,7 @@ ESP8266WebServer server(80);
 Servo feeder;
 
 int servo_angle = 0;
+int servo_angle_new = 0;
 
 void handle404() {
   String message = "File Not Found\n\n";
@@ -67,10 +68,10 @@ void handleFeeder() {
     Serial.print("Got servo value: ");
     Serial.println(value);
     
-    servo_angle = value.toInt();
+    servo_angle_new = value.toInt();
 
     json += "\"value\": \"";
-    json += servo_angle;
+    json += servo_angle_new;
     json += "\"";
   }
 
@@ -81,8 +82,6 @@ void handleFeeder() {
 
 void setup() {
   Serial.begin(115200);
-
-  feeder.attach(2);
 
   WiFi.begin(ssid, password);
 
@@ -106,21 +105,26 @@ void setup() {
   server.on("/feeder", handleFeeder);
 
   // Wow
-  server.on("/inline", []() {
-    server.send(200, "text/plain", "this works as well");
-  });
+  //server.on("/inline", []() {
+  //  server.send(200, "text/plain", "this works as well");
+  //});
 
   server.begin();
+
+  feeder.attach(2);
 
   Serial.println("Turtle feeder has server started.");
 }
 
 void loop() {
-  feeder.write(servo_angle); // This will be throttled
-  delay(10); // There.
-  
-  //Serial.print("Servo val: ");
-  //Serial.println(servo_angle);
+  if (servo_angle != servo_angle_new) {    
+    servo_angle = servo_angle_new;
+    feeder.write(servo_angle); // This will be throttled
+    delay(10); // There.
+
+    Serial.print("Updated servo value: ");
+    Serial.println(servo_angle);
+  }
 
   server.handleClient();
 }
