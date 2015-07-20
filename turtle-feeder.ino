@@ -3,6 +3,9 @@
 #include <ESP8266WebServer.h>
 #include <Servo.h>
 
+#define SERVO_MIN 30
+#define SERVO_MAX 180
+
 const char *ssid     = "YOU_THOUGHT";
 const char *password = "I_COMMITTED_THIS?";
 
@@ -10,8 +13,38 @@ ESP8266WebServer server(80);
 
 Servo feeder;
 
-int servo_angle = 0;
-int servo_angle_new = 0;
+byte servo_angle = SERVO_MIN;
+
+void move_feeder() {
+  feeder.write(servo_angle);
+  delay(15);
+}
+
+void sweep_feeder() {
+  byte pos;
+
+  Serial.println("[sweep_feeder] Starting.");
+
+  Serial.println("[sweep_feeder] Going from 0 to 180.");
+
+  for (pos = SERVO_MIN; pos <= SERVO_MAX; pos++) {
+    Serial.print("[sweep_feeder] pos: ");
+    Serial.println(pos);
+    servo_angle = pos;
+    move_feeder();
+  }
+
+  Serial.println("[sweep_feeder] Going back now.");
+
+  for (pos = SERVO_MAX; pos >= SERVO_MIN; pos--) {
+    Serial.print("[sweep_feeder] pos: ");
+    Serial.println(pos);
+    servo_angle = pos;
+    move_feeder();
+  }
+
+  Serial.println("[sweep_feeder] Ended.");
+}
 
 void handle404() {
   String message = "File Not Found\n\n";
@@ -53,11 +86,10 @@ void handleRoot() {
   server.send(200, "text/html", temp);
 }
 
-void handleFeeder() {
+void handleFeederMove() {
   String json = "{";
 
   if (server.method() == HTTP_GET) {
-    json += "\"message\": \"sup dude?\",";
     json += "\"value\": \"";
     json += servo_angle;
     json += "\"";
@@ -67,13 +99,64 @@ void handleFeeder() {
 
     Serial.print("Got servo value: ");
     Serial.println(value);
-    
-    servo_angle_new = value.toInt();
+
+    servo_angle = value.toInt();
+    move_feeder();
 
     json += "\"value\": \"";
-    json += servo_angle_new;
+    json += servo_angle;
     json += "\"";
   }
+
+  json += "}";
+
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+  server.send(200, "application/json", json);
+}
+
+void handleFeederSweep() {
+  String json = "{";
+  json += "\"status\": \"done\"";
+  json += "}";
+
+  sweep_feeder();
+
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+  server.send(200, "application/json", json);
+}
+
+void handleStatus() {
+  String json = "{";
+
+  json += "\"esp\":{"; // Start the "ESP" object
+  json += "\"free_heap\":\"";
+  json += ESP.getFreeHeap();
+  json += "\",";
+  json += "\"chip_id\":\"";
+  json += ESP.getChipId();
+  json += "\",";
+  json += "\"flash_chip_id\":\"";
+  json += ESP.getFlashChipId();
+  json += "\",";
+  json += "\"flash_chip_size\":\"";
+  json += ESP.getFlashChipSize();
+  json += "\",";
+  json += "\"flash_chip_speed\":\"";
+  json += ESP.getFlashChipSpeed();
+  json += "\",";
+  json += "\"cycle_count\":\"";
+  json += ESP.getCycleCount();
+  json += "\",";
+  json += "\"vcc\":\"";
+  json += ESP.getVcc();
+  json += "\"";
+  json += "},"; // End the "ESP" object
+
+  json += "\"feeder\":{"; // Start the "feeder" object
+  json += "\"value\":\"";
+  json += servo_angle;
+  json += "\"";
+  json += "}"; // End the "feeder" object
 
   json += "}";
 
@@ -103,7 +186,9 @@ void setup() {
 
   server.onNotFound(handle404);
   server.on("/", handleRoot);
-  server.on("/feeder", handleFeeder);
+  server.on("/api/feeder/move", handleFeederMove);
+  server.on("/api/feeder/sweep", handleFeederSweep);
+  server.on("/api/status", handleStatus);
 
   // Wow
   //server.on("/inline", []() {
@@ -113,19 +198,11 @@ void setup() {
   server.begin();
 
   feeder.attach(2);
+  move_feeder();
 
   Serial.println("Turtle feeder has server started.");
 }
 
 void loop() {
-  if (servo_angle != servo_angle_new) {    
-    servo_angle = servo_angle_new;
-    feeder.write(servo_angle); // This will be throttled
-    delay(10); // There.
-
-    Serial.print("Updated servo value: ");
-    Serial.println(servo_angle);
-  }
-
   server.handleClient();
 }
