@@ -1,0 +1,58 @@
+<html lang="en" ng-app="FeederApp">
+
+<head>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.10.0/angular-material.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+    <meta name="viewport" content="initial-scale=1" />
+</head>
+
+<body layout="column" ng-controller="AppCtrl">
+    <md-content>
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Turtle feeder v1.0</h2>
+            </div>
+        </md-toolbar>
+        <div layout="row">
+            <div flex="33" offset="33">
+                <md-card>
+                    <md-toolbar>
+                        <div class="md-toolbar-tools">
+                            <h2>Press button to feed</h2>
+                        </div>
+                    </md-toolbar>
+                    <div layout="column" layout-margin>
+                        <md-button class="md-raised md-primary" ng-click="feed()">Feed</md-button>
+                    </div>
+                </md-card>
+            </div>
+        </div>
+        <div layout="row">
+            <div flex="33" offset="33">
+                <md-card>
+                    <md-toolbar>
+                        <div class="md-toolbar-tools">
+                            <h2>Custom position</h2>
+                        </div>
+                    </md-toolbar>
+                    <div layout="column" layout-margin>
+                        <form name="userForm">
+                            <md-input-container flex>
+                                <label>Value</label>
+                                <input type="number" min="0" max="180" ng-model="value">
+                            </md-input-container>
+                            <md-button class="md-raised md-primary" ng-click="setPosition()">Feed</md-button>
+                        </form>
+                    </div>
+                </md-card>
+            </div>
+        </div>
+    </md-content>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/0.10.0/angular-material.min.js"></script>
+    <script src="assets/scripts/app.js"></script>
+</body>
+
+</html>
