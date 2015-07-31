@@ -3,7 +3,7 @@
 
     var esp8266 = 'http://192.168.1.111';
 
-    app.controller('AppCtrl', function($scope, $http, $mdSidenav) {
+    app.controller('AppCtrl', ['$scope', '$http', function($scope, $http) {
         $scope.feed = function() {
             $http.post(esp8266 + '/api/feeder/sweep').
             success(function(data, status, headers, config) {
@@ -15,7 +15,7 @@
         };
 
         $scope.setPosition = function() {
-            var values = "value=" + $scope.value;
+            var values = 'value=' + $scope.value;
 
             $http.post(esp8266 + '/api/feeder/move', values).
             success(function(data, status, headers, config) {
@@ -25,5 +25,5 @@
                 console.log('error');
             });
         };
-    });
+    }]);
 })();
